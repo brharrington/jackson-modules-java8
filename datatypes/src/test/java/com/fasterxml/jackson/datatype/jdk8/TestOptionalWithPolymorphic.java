@@ -1,6 +1,8 @@
 package com.fasterxml.jackson.datatype.jdk8;
 
+import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -10,6 +12,7 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import org.junit.Assert;
 
 public class TestOptionalWithPolymorphic extends ModuleTestBase
 {
@@ -21,6 +24,11 @@ public class TestOptionalWithPolymorphic extends ModuleTestBase
     static class ContainerB {
         @JsonProperty private Optional<String> name = Optional.empty();
         @JsonProperty private Strategy strategy = null;
+    }
+
+    static class ContainerC {
+        @JsonProperty private Optional<List<Strategy>> strategy =
+            Optional.of(Collections.singletonList(new Foo(42)));
     }
 
     @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")
@@ -105,6 +113,11 @@ public class TestOptionalWithPolymorphic extends ModuleTestBase
 		baz.put("strategy", loop);
 
 		_test(MAPPER, baz);
+    }
+
+    public void testOptionalListTypeInfo() throws Exception {
+        String json = MAPPER.writeValueAsString(new ContainerC());
+        Assert.assertEquals("{\"strategy\":[{\"type\":\"foo\",\"foo\":42}]}", json);
     }
 
     public void testOptionalWithTypeAnnotation13() throws Exception
